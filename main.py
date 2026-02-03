@@ -7,7 +7,7 @@ from astrbot.api import logger
     "astrbot_plugin_pollinations_images",
     "qa296",
     "使用 Pollinations AI生成图片。无需注册，开箱即用！",
-    "1.1.0"
+    "1.2.0"
 )
 class PollinationsGeneratorPlugin(Star):
     """
@@ -60,24 +60,23 @@ class PollinationsGeneratorPlugin(Star):
         LLM 函数调用工具：根据主题生成图片。
 
         Args:
-            theme(string): 图片主题
+            theme(string): 图片的详细描述
         """
         try:
-            yield event.plain_result("正在为您生成图片，请稍候...")
-
             # 调用独立的 LLM 提示词生成函数
             refined_prompt = await self.generate_prompt_via_llm(theme)
 
             encoded_prompt = urllib.parse.quote(refined_prompt)
             image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?nologo=true&model=flux"
 
-            logger.debug(f"生成的图片URL: {image_url}")
+            logger.debug(f"{image_url}")
 
-            yield event.image_result(image_url)
+            # 返回图片URL，LLM会将其整合到回复中
+            return image_url
 
         except Exception as e:
             logger.error(f"图片生成过程中发生错误: {e}")
-            yield event.plain_result(f"生成图片时遇到问题: {str(e)}")
+            raise Exception(f"生成图片时遇到问题: {str(e)}")
 
     @filter.command("ai生图")
     async def generate_image(self, event: AstrMessageEvent, prompt_text: str):
